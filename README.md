@@ -333,6 +333,7 @@ config
   .context(context)
   .externals(externals)
   .loader(loader)
+  .name(name)
   .mode(mode)
   .parallelism(parallelism)
   .profile(profile)
@@ -599,7 +600,7 @@ config.optimization
   .tap(args => newArgs)
 
 // 例如
-config
+config.optimization
   .minimizer('css')
   .tap(args => [...args, { cssProcessorOptions: { safe: false } }])
 ```
@@ -948,6 +949,66 @@ config.module
         .loader('file-loader')
 ```
 
+#### Config module rules oneOfs (conditional rules): ordering before
+Specify that the current `oneOf` context should operate before another named
+`oneOf`. You cannot use both `.before()` and `.after()` on the same `oneOf`.
+
+```js
+config.module
+  .rule(name)
+    .oneOf(name)
+      .before()
+
+// Example
+
+config.module
+  .rule('scss')
+    .test(/\.scss$/)
+    .oneOf('normal')
+      .use('sass')
+        .loader('sass-loader')
+        .end()
+      .end()
+    .oneOf('sass-vars')
+      .before('normal')
+      .resourceQuery(/\?sassvars/)
+      .use('sass-vars')
+        .loader('sass-vars-to-js-loader')
+```
+
+#### Config module rules oneOfs (conditional rules): ordering after
+Specify that the current `oneOf` context should operate after another named
+`oneOf`. You cannot use both `.before()` and `.after()` on the same `oneOf`.
+
+```js
+config.module
+  .rule(name)
+    .oneOf(name)
+      .after()
+
+// Example
+
+config.module
+  .rule('scss')
+    .test(/\.scss$/)
+    .oneOf('vue')
+      .resourceQuery(/\?vue/)
+      .use('vue-style')
+        .loader('vue-style-loader')
+        .end()
+      .end()
+    .oneOf('normal')
+      .use('sass')
+        .loader('sass-loader')
+        .end()
+      .end()
+    .oneOf('sass-vars')
+      .after('vue')
+      .resourceQuery(/\?sassvars/)
+      .use('sass-vars')
+        .loader('sass-vars-to-js-loader')
+```
+
 ---
 
 ### 合并配置
@@ -1024,7 +1085,7 @@ config.merge({
     [key]: value
   },
 
-  optimizations: {
+  optimization: {
     concatenateModules,
     flagIncludedChunks,
     mergeDuplicateChunks,
@@ -1197,6 +1258,9 @@ config.toString();
 默认情况下，如果生成的字符串包含需要的函数和插件，则不能直接用作真正的webpack配置。为了生成可用的配置，您可以通过__expression在其上设置特殊属性来自定义函数和插件的字符串化方式：
 
 ``` js
+const sass = require('sass');
+sass.__expression = `require('sass');
+
 class MyPlugin {}
 MyPlugin.__expression = `require('my-plugin')`;
 
@@ -1205,7 +1269,7 @@ myFunction.__expression = `require('my-function')`;
 
 config
   .plugin('example')
-    .use(MyPlugin, [{ fn: myFunction }]);
+    .use(MyPlugin, [{ fn: myFunction, implementation: sass, }]);
 
 config.toString();
 
@@ -1213,7 +1277,8 @@ config.toString();
 {
   plugins: [
     new (require('my-plugin'))({
-      fn: require('my-function')
+      fn: require('my-function'),
+      implementation: require('sass')
     })
   ]
 }
@@ -1259,8 +1324,9 @@ Config.toString({
     ],
   },
 })
+```
 
-
+```
 {
   plugins: [
     /* config.plugin('foo') */
