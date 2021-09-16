@@ -316,7 +316,7 @@ const config = new Config();
 
 移动到API的更深层将改变你正在修改的内容的上下文。 你可以通过 `config`在此引用顶级配置或者通过调用 `.end()` 方法向上移动一级 使你移回更高的 上下文环境。
 如果你熟悉jQuery, 这里与其 `.end()` 工作原理类似。除非另有说明，否则全部的API调用都将在当前上下文中返回API实例。 这样，你可以根据需要连续 链式API调用.  
-有关对所有速记和低级房费有效的特定值的详细信息，请参阅 [webpack文档层次结构](https://webpack.js.org/configuration/) 中的相应名词。
+有关对所有速记和低级方法有效的特定值的详细信息，请参阅 [webpack文档层次结构](https://webpack.js.org/configuration/) 中的相应名词。
 
 ```js
 Config : ChainedMap
